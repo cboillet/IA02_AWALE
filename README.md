@@ -2,11 +2,23 @@ IA02_AWALE
 ==========
 
 Besoins :
+/*******STEP 1********/
 - liste pour modéliser l'état du jeu : ok liste([4,4,4,4,4]): ok
 - prédicat pour afficher la liste: afficher(L): ok
 - prédicat pour tester le nombre de points de chacun des joueurs : ok
 - prédicat qui distribue les graines d'une case dans les cases suivantes jouer(X,Y) //X joue la case Y
 - prédicat qui récupère les graines de la case et les mets dans la pôche du joueur recuperer(X,Y) //X recupere les graines de la case Y
+
+/********STEP 2 pour le 04/06**********/
+
+- finir affichage Cam
+- ramasser Jean
+- test famine (test si camp sans graines) Erwan 
+- input Jean
+
+
+- jouer=distrbuer, ramasser, tester famine et retour arrière si. 
+
 
 Stratégie gagnante:
 - a chercher sur internet
