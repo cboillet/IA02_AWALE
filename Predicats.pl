@@ -22,7 +22,15 @@ setnbgraines([_|Q],1,G,[G|Q]):- !.
 setnbgraines([T|Q],C,G,[T|R]):- C1 is C-1, setnbgraines(Q,C1,G,R).
 
 
-%Prédicat distribuer distribuer(C,G,L) C:Case de départ, G:nb de grainse, L:liste 
-distribuer(0,_,L,L):- !.
-distribuer(G,13,L,L2) :- distribuer(G,1,L,L2).
-distribuer(GD,C,L,L4) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L3),nbgraines(L,C,G), G1 is G+1, setnbgraines(L3,C,G1,L4).
+%Prédicat distribuer distribuer(C,G,L,L2,CA) C:Case de départ, G:nb de grainse, L:liste, L2: nouvelle liste, CA: Case d'arrivee
+% TODO : Ajouter la case d'arrivee
+distribuer(0,C,L,L,C):- !.
+distribuer(G,13,L,L2,CA) :- distribuer(G,1,L,L2,CA).
+distribuer(GD,C,L,L4,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L3,CA),nbgraines(L,C,G), G1 is G+1, setnbgraines(L3,C,G1,L4).
+
+%Prédicats test si plus de graines dans un champ
+plus_graines(joueur1,6
+plus_graines(joueur1,L,C):-
+
+jouer():-jouer&plusgraines()!.
+jouer():-jouer.
