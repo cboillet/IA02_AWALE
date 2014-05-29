@@ -1,6 +1,6 @@
 %Base de Données
 liste([4,4,4,4,4,4,4,4,4,4,4,4]).
-liste_test([3,2,2,4,4,4,4,4,4,4,2,3]).
+liste_test([1,2,3,4,5,6,7,8,9,10,11,12]).
 nb_jeton(joueur1,0).
 nb_jeton(joueur2,0).
 tour(joueur1).
@@ -12,15 +12,23 @@ tour(joueur1).
 %afficher([T|Q],N) :- N==7,!,write('|'),write(T),write('|'),nl, M is N-1,afficher(Q,M).
 %afficher([T|Q],N) :- N>0,M is N-1,write('|'),write(T),afficher(Q,M).
 
-%Predicat diviser la liste
-diviser([],[],[],_).
-diviser([T|Q],[L3|T],L2,C):- C<7,!,write('test'),C2 is C+1 ,diviser(Q,L3,L2,C2).
-diviser([T|Q],L1,[L3|T],C):- C2 is C+1 ,diviser(Q,L1,L3,C2).
+%affichage de la lise
+	%Predicat diviser la liste
+	diviser([],[],[],_) :- !; 
+	diviser([],L1,L2,_).
+	diviser([T|Q],[T|L1],L2,C):- C<7,!,C2 is C+1 ,diviser(Q,L1,L2,C2).
+	diviser([T|Q],L1,[T|L2],C):- C2 is C+1 ,diviser(Q,L1,L2,C2).
 
+	%Predicat afficher 1 liste ordre
+	affiche1([]):-write('|').
+	affiche1([T|Q]) :- write('|'),write(T),affiche1(Q).
 
-%Predicat afficher 1 liste ordre
-%Predicat afficher 1 liste ordre inverse
-%Predicat afficher 2 listes
+	%Predicat afficher 1 liste ordre inverse
+	affiche2([]):-write('|').
+	affiche2([T|Q]) :- affiche2(Q),write(T),write('|').
+
+	%Predicat afficher 2 listes
+	afficher(L) :- diviser(L,L1,L2,1),affiche2(L2),nl,affiche1(L1).
 
 %Prédicat nbgraines(L,C,G) C:case, L:liste G:graines
 nbgraines([T|Q],1,T):- !.
