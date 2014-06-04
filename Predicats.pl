@@ -1,66 +1,69 @@
-%Base de Données
-liste([4,4,4,4,4,4,4,4,4,4,4,4]).
+/* Base de Données */
+
+%include('Donnees.pl').
+jeu([4,4,4,4,4,4,4,4,4,4,4,4]).
 liste_test([1,2,3,4,5,6,7,8,9,10,11,12]).
-nb_jeton(joueur1,0).
-nb_jeton(joueur2,0).
+
+nb_jetons(joueur1,0).
+nb_jetons(joueur2,0).
+
 tour(joueur1).
 
-%Predicat de manipulation
 
-%afficher(L) :- afficher(L, 12).
-%afficher([],0) :- write('|').
-%afficher([T|Q],N) :- N==7,!,write('|'),write(T),write('|'),nl, M is N-1,afficher(Q,M).
-%afficher([T|Q],N) :- N>0,M is N-1,write('|'),write(T),afficher(Q,M).
+/* Predicat de manipulation */
 
-%affichage de la lise
-	%Predicat diviser la liste
-	diviser([],[],[],_) :- !; 
-	diviser([],L1,L2,_).
-	diviser([T|Q],[T|L1],L2,C):- C<7,!,C2 is C+1 ,diviser(Q,L1,L2,C2).
-	diviser([T|Q],L1,[T|L2],C):- C2 is C+1 ,diviser(Q,L1,L2,C2).
+%Affichage de la liste du jeu
+	%Predicat diviser(L,L1,L2,C) : divise la liste L en deux sous-listes L1 et L2
+	diviser([],[],[],_) :- !.
+	diviser([T|Q],[T|L1],L2,C) :- C<7, !, C2 is C+1, diviser(Q,L1,L2,C2).
+	diviser([T|Q],L1,[T|L2],C) :- C2 is C+1 ,diviser(Q,L1,L2,C2).
 
-	%Predicat afficher 1 liste ordre
-	affiche1([]):-write('|').
-	affiche1([T|Q]) :- write('|'),write(T),affiche1(Q).
+	%Predicat afficher(L) : affiche une liste L dans l'ordre
+	affiche1([]) :- write('|').
+	affiche1([T|Q]) :- write('|'), write(T), affiche1(Q).
 
-	%Predicat afficher 1 liste ordre inverse
-	affiche2([]):-write('|').
-	affiche2([T|Q]) :- affiche2(Q),write(T),write('|').
+	%Predicat afficher2(L) : affiche une liste L dans l'ordre inverse
+	affiche2([]) :- write('|').
+	affiche2([T|Q]) :- affiche2(Q), write(T), write('|').
 
-	%Predicat afficher 2 listes
-	afficher(L) :- diviser(L,L1,L2,1),affiche2(L2),nl,affiche1(L1).
+	%Predicat afficher(L) : affiche la liste L du jeu
+	afficher(L) :- diviser(L,L1,L2,1), affiche2(L2), nl, affiche1(L1).
+	
 
-%Prédicat nbgraines(L,C,G) C:case, L:liste G:graines
-nbgraines([T|Q],1,T):- !.
-nbgraines([T|Q],C,G):- M is C-1, nbgraines(Q,M,G).
+%Prédicat nb_graines(C,L,G) : donne le nombre G de graines de la case C de la liste L
+nb_graines(1,[T|_],T) :- !.
+nb_graines(C,[_|Q],G) :- C1 is C-1, nb_graines(C1,Q,G).
 
-%Prédicat jouer un tour jouer(J,C,L) J:joueur, C:case, L:liste
-jouer(J,C,L,L3) :- peut_jouer(J,C), nbgraines(L,C,G), C1 is C+1, setnbgraines(L,C,0,L2),distribuer(G,C1,L2,L3).
+%Prédicat set_nb_graines(C,L,G,LF) : affecte le nombre G de graines dans la case C de la liste LF
+set_nb_graines(1,[_|Q],G,[G|Q]) :- !.
+set_nb_graines(C,[T|Q],G,[T|R]) :- C1 is C-1, set_nb_graines(C1,Q,G,R).
 
-%Prédicat test si l'joueur peut jouer cette case case_du_camp(J,C) J joue la case C
+
+%Prédicat jouer(J,C,L) : le joueur J joue la case C
+jouer(J,C,L,LF) :- case_du_camp(J,C), nb_graines(C,L,G), C1 is C+1, set_nb_graines(C,L,0,L2), distribuer(G,C1,L2,LF).
+
+%Prédicat case_du_camp(J,C) : teste si le joueur peut jouer la case C
 case_du_camp(joueur1,C) :- C<7, C>0.
 case_du_camp(joueur2,C) :- C>6, C<13.
 
-%Prédicat setnbgraines(L,C,G,LF) LF:liste finale
-setnbgraines([_|Q],1,G,[G|Q]):- !.
-setnbgraines([T|Q],C,G,[T|R]):- C1 is C-1, setnbgraines(Q,C1,G,R).
 
-
-%Prédicat distribuer distribuer(C,G,L,L2,CA) C:Case de départ, G:nb de grainse, L:liste, L2: nouvelle liste, CA: Case d'arrivee
+%Prédicat distribuer(C,G,L,L2,CA) : distribue le nombre G de graines de la case C à la case d'arrivée CA
 % TODO : Ajouter la case d'arrivee
 distribuer(0,C,L,L,CA) :- CA is C-1, !.
 distribuer(G,13,L,L2,CA) :- distribuer(G,1,L,L2,CA).
-distribuer(GD,C,L,L4,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L3,CA),nbgraines(L,C,G), G1 is G+1, setnbgraines(L3,C,G1,L4).
+distribuer(GD,C,L,L4,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L3,CA), nb_graines(C,L,G), G1 is G+1, set_nb_graines(C,L3,G1,L4).
 
 %Predicat ramasser graines ramasser(L,C,J,L2,NG) L liste de graines, C case où l'on arrive, L2, liste retournée une fois ramassée, NG nb de graines ramassée
-ramasser(L,C,J,L,0):- \+case_du_camp(J,C),!. 
-ramasser(L,C,_,L,0):- nbgraines(L,C,N), N>3,!.
-ramasser(L,C,_,L,0):- nbgraines(L,C,N), N<2,!.
-ramasser(L,C,J,L3,NG):- nbgraines(L,C,N), setnbgraines(L,C,0,L2), C2 is C-1, write('test') ,ramasser(L2,C2,J,L3,NG2),write('test2'), NG is N+NG2.
+ramasser(L,C,J,L,0) :- \+case_du_camp(J,C), !. 
+ramasser(L,C,_,L,0) :- nb_graines(C,L,N), N>3, !.
+ramasser(L,C,_,L,0) :- nb_graines(C,L,N), N<2, !.
+ramasser(L,C,J,L3,NG) :- nb_graines(C,L,N), set_nb_graines(C,L,0,L2), C2 is C-1, write('test'), ramasser(L2,C2,J,L3,NG2), write('test2'), NG is N+NG2.
+
+
 
 %Prédicats test si plus de graines dans un champ
 %plus_graines(joueur1,6
 %plus_graines(joueur1,L,C):-
 
-%jouer():-jouer&plusgraines()!.
-%jouer():-jouer.
+%jouer() :- jouer&plusgraines()!.
+%jouer() :- jouer.
