@@ -46,6 +46,12 @@ set_nb_graines(C,[T|Q],G,[T|R]) :- C1 is C-1, set_nb_graines(C1,Q,G,R).
 %Prédicat jouer(J,C,L) : le joueur J joue la case C
 jouer(J,C,L,LF) :- case_du_camp(J,C), nb_graines(C,L,G), C1 is C+1, set_nb_graines(C,L,0,L2), distribuer(G,C1,L2,LF,CA).
 
+%Prédicat famine(J,L) : teste si le joueur J est en famine, c-à-d. s'il n'a plus de graines dans son camp
+famine(J,L) :- famine(J,1,L).
+famine(_,_,[]) :- !.
+famine(J,C,[T|Q]) :- case_du_camp(J,C), !, T =:= 0, C1 is C+1, famine(J,C1,Q).
+famine(J,C,[_|Q]) :- C1 is C+1, famine(J,C1,Q).
+
 %Prédicat case_du_camp(J,C) : teste si le joueur peut jouer la case C
 case_du_camp(joueur1,C) :- C<7, C>0.
 case_du_camp(joueur2,C) :- C>6, C<13.
