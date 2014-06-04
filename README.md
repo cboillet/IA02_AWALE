@@ -9,7 +9,7 @@ Besoins :
 - prédicat qui distribue les graines d'une case dans les cases suivantes jouer(X,Y) //X joue la case Y
 - prédicat qui récupère les graines de la case et les mets dans la pôche du joueur recuperer(X,Y) //X recupere les graines de la case Y
 
-/********STEP 2 pour le 04/06**********/
+/********STEP 2 pour le 04/06 => DONE**********/
 - finir affichage Cam
 - ramasser Jean
 - test famine (test si camp sans graines) Erwan 
