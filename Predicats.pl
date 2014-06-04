@@ -45,7 +45,7 @@ case_du_camp(joueur2,C) :- C >= 7, C =< 12.
 famine(J,L) :- famine(J,1,L).
 famine(_,_,[]) :- !.
 famine(J,C,[T|Q]) :- case_du_camp(J,C), !, T =:= 0, C1 is C+1, famine(J,C1,Q).
-famine(J,C,[T|Q]) :- C1 is C+1, famine(J,C1,Q).
+famine(J,C,[_|Q]) :- C1 is C+1, famine(J,C1,Q).
 
 
 %Prédicat distribuer(C,G,L,LA,CA) : distribue le nombre GD de graines de la case C à la case d'arrivée CA
@@ -76,7 +76,6 @@ flush_instream(STREAM) :- get_char(STREAM,'\n'),!.
 flush_instream(STREAM) :- get_char(STREAM,_),flush_instream(STREAM).
 reAskCase(NB) :- write('Vous devez entrer un nombre\n'),current_input(STDIN),flush_instream(STDIN),askCaseFinal(NB).
 askCaseFinal(NB) :- catch(askCase(NB),_,reAskCase(NB)).
->>>>>>> 34eea5a8f53ed03ef3a9611c13ac0ad385f46d11
 
 %Predicat askCase(NB) : demande quelle case distribuée et renvoit la case
 askCase(NB) :- current_input(STDIN),write('Quelle case souhaitez-vous distribuer?\n'),read_number(STDIN,NB).
