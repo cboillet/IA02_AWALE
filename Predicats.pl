@@ -1,13 +1,21 @@
 /* Base de Données */
 
 %include('Donnees.pl').
-jeu([4,4,4,4,4,4,4,4,4,4,4,4]).
+etat_initial([4,4,4,4,4,4,4,4,4,4,4,4]).
 liste_test([1,2,3,4,5,6,7,8,9,10,11,12]).
+liste_test2([1,0,2,3,0,1,0,0,0,0,0,0]).
 
 nb_jetons(joueur1,0).
 nb_jetons(joueur2,0).
 
+joueur_adverse(joueur1,JA) :- JA = joueur2.
+joueur_adverse(joueur2,JA) :- JA = joueur1.
+
 tour(joueur1).
+
+/* Jeux d'essais */
+%liste_test2(L), afficher(L), jouer(joueur1,4,L,LA), afficher(LA), jouer(joueur2,7,LA,LA1), afficher(LA1).
+%liste_test2(L), afficher(L), jouer(joueur1,4,L,LA), afficher(LA), jouer(joueur2,12,LA,LA1), afficher(LA1). %La case 12 est impossible à jouer
 
 
 /* Predicat de manipulation */
@@ -38,47 +46,56 @@ tour(joueur1).
 nb_graines(1,[T|_],T) :- !.
 nb_graines(C,[_|Q],G) :- C1 is C-1, nb_graines(C1,Q,G).
 
-%Prédicat set_nb_graines(C,L,G,LF) : affecte le nombre G de graines dans la case C de la liste LF
+%Prédicat set_nb_graines(C,L,G,LA) : affecte le nombre G de graines dans la case C de la liste LA
 set_nb_graines(1,[_|Q],G,[G|Q]) :- !.
 set_nb_graines(C,[T|Q],G,[T|R]) :- C1 is C-1, set_nb_graines(C1,Q,G,R).
 
 
 %Prédicat jouer(J,C,L) : le joueur J joue la case C
-jouer(J,C,L,LF) :- case_du_camp(J,C), nb_graines(C,L,G), C1 is C+1, set_nb_graines(C,L,0,L2), distribuer(G,C1,L2,LF,CA).
+jouer(J,C,L,LA) :- coups_possibles(J,C,L,LCases), member(C,LCases), nb_graines(C,L,G), C1 is C+1, set_nb_graines(C,L,0,L2), distribuer(G,C1,L2,LA,_), !.
+
+%Prédicat case_du_camp(J,C) : teste si le joueur peut jouer la case C
+case_du_camp(joueur1,C) :- C<7, C>0.
+case_du_camp(joueur2,C) :- C>6, C<13.
 
 %Prédicat famine(J,L) : teste si le joueur J est en famine, c-à-d. s'il n'a plus de graines dans son camp
 famine(J,L) :- famine(J,1,L).
 famine(_,_,[]) :- !.
 famine(J,C,[T|Q]) :- case_du_camp(J,C), !, T =:= 0, C1 is C+1, famine(J,C1,Q).
 famine(J,C,[_|Q]) :- C1 is C+1, famine(J,C1,Q).
+%famine(J,L) :- length(L,C), famine(J,C,L). % Autre version, peut-être plus claire, mais moins performante selon moi
+%famine(_,0,_) :- !.
+%famine(J,C,L) :- case_du_camp(J,C), !, nb_graines(C,L,G), G =:= 0, C1 is C-1, famine(J,C1,L).
+%famine(J,C,L) :- C1 is C-1, famine(J,C1,L).
 
-%Prédicat case_du_camp(J,C) : teste si le joueur peut jouer la case C
-case_du_camp(joueur1,C) :- C<7, C>0.
-case_du_camp(joueur2,C) :- C>6, C<13.
+%Prédicat coups_possibles(J,L,LCases) : renvoie la liste des cases possibles pour le joueur, c-à-d. celles qui appartiennent au joueur, non vides, et n'entrainant pas de famine chez l'autre joueur
+coups_possibles(J,L,LCases) :- length(L,C), coups_possibles(J,C,L,LCases).
+coups_possibles(_,0,_,[]) :- !.
+coups_possibles(J,C,L,LCases) :- case_du_camp(J,C), nb_graines(C,L,G), G > 0, joueur_adverse(J,JA), C1 is C+1, distribuer(G,C1,L,LA,_), \+famine(JA,LA), !, C2 is C-1, coups_possibles(J,C2,L,LCases1), LCases = [C|LCases1]. 
+coups_possibles(J,C,L,LCases) :- C1 is C-1, coups_possibles(J,C1,L,LCases).
 
-
-%Prédicat distribuer(C,G,L,L2,CA) : distribue le nombre G de graines de la case C à la case d'arrivée CA
+%Prédicat distribuer(GD,C,L,LA,CA) : distribue le nombre G de graines de la case C à la case d'arrivée CA
 distribuer(0,C,L,L,CA) :- CA is C-1, !.
-distribuer(G,13,L,L2,CA) :- distribuer(G,1,L,L2,CA).
-distribuer(GD,C,L,L4,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L3,CA), nb_graines(C,L,G), G1 is G+1, set_nb_graines(C,L3,G1,L4).
+distribuer(GD,13,L,LA,CA) :- distribuer(GD,1,L,LA,CA).
+distribuer(GD,C,L,LA,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L1,CA), nb_graines(C,L,G), G1 is G+1, set_nb_graines(C,L1,G1,LA).
 
-%Predicat ramasser graines ramasser(L,C,J,L2,NG) L liste de graines, C case où l'on arrive, L2, liste retournée une fois ramassée, NG nb de graines ramassée
-ramasser(L,C,J,L,0) :- case_du_camp(J,C), !. 
-ramasser(L,C,_,L,0) :- nb_graines(C,L,N), N>3, !.
-ramasser(L,C,_,L,0) :- nb_graines(C,L,N), N<2, !.
-ramasser(L,0,J,L2,NG) :- ramasser(L,12,J,L2,NG).
-ramasser(L,C,J,L3,NG) :- nb_graines(C,L,N), set_nb_graines(C,L,0,L2), C2 is C-1, ramasser(L2,C2,J,L3,NG2), NG is N+NG2.
+%Predicat ramasser_internal(L,C,J,LA,G) : ramasse les graines L liste de graines, C case où l'on arrive, LA, liste retournée une fois ramassée, NG nb de graines ramassée
+ramasser_internal(J,C,L,L,0) :- case_du_camp(J,C), !. 
+ramasser_internal(_,C,L,L,0) :- nb_graines(C,L,G1), G1>3, !.
+ramasser_internal(_,C,L,L,0) :- nb_graines(C,L,G1), G1<2, !.
+ramasser_internal(J,0,L,LA,G) :- ramasser_internal(J,12,L,LA,G).
+ramasser_internal(J,C,L,LA,G) :- nb_graines(C,L,G1), set_nb_graines(C,L,0,L1), C1 is C-1, ramasser_internal(J,C1,L1,LA,G2), G is G1+G2.
 
 
 %Predicat askCaseFinal(C) : demande quelle case distribuée et renvoit la case, boucle tant que l'utilisateur ne rentre pas un nombre
-flush_instream(STREAM) :- get_char(STREAM,'\n'),!.
-flush_instream(STREAM) :- get_char(STREAM,_),flush_instream(STREAM).
-reAskCase(C) :- write('Vous devez entrer un nombre\n'),current_input(STDIN),flush_instream(STDIN),askCaseFinal(C).
+flush_instream(STREAM) :- get_char(STREAM,'\n'), !.
+flush_instream(STREAM) :- get_char(STREAM,_), flush_instream(STREAM).
+reAskCase(C) :- write('Vous devez entrer un nombre\n'), current_input(STDIN), flush_instream(STDIN), askCaseFinal(C).
 askCaseFinal(C) :- catch(askCase(C),_,reAskCase(C)).
 
-%Predicat askValidCase(J,C) : demande quelle case distribuée, si elle n'est pas dans le camp du joueur, lui redemande jusqu'à ce que la case soit valide
-askValidCase(J,C,L) :- askCaseFinal(C),case_du_camp(J,C),nb_graines(C,L,G), G > 0, !.
-askValidCase(J,C,L) :- write('Cette case n''est pas dans votre camp, merci de fournir une case valide\n'),askValidCase(J,C,L).
+%Predicat askValidCase(J,C,L) : demande quelle case distribuée, si elle n'est pas dans le camp du joueur, lui redemande jusqu'à ce que la case soit valide
+askValidCase(J,C,L) :- askCaseFinal(C), case_du_camp(J,C), nb_graines(C,L,G), G > 0, !.
+askValidCase(J,C,L) :- write('Cette case n''est pas valide (elle n''est pas dans votre camp ou ne contient pas de graines). Merci de fournir une case valide\n'), askValidCase(J,C,L).
 
-%Predicat askCase(C) : demande quelle case distribuée et renvoit la case
-askCase(C) :- current_input(STDIN),write('Quelle case souhaitez-vous distribuer?\n'),read_number(STDIN,C).
+%Predicat askCase(C) : demande quelle case distribuée et renvoie la case
+askCase(C) :- current_input(STDIN), write('Quelle case souhaitez-vous distribuer?\n'), read_number(STDIN,C).
