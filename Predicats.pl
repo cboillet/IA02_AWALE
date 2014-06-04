@@ -77,8 +77,8 @@ reAskCase(C) :- write('Vous devez entrer un nombre\n'),current_input(STDIN),flus
 askCaseFinal(C) :- catch(askCase(C),_,reAskCase(C)).
 
 %Predicat askValidCase(J,C) : demande quelle case distribuée, si elle n'est pas dans le camp du joueur, lui redemande jusqu'à ce que la case soit valide
-askValidCase(J,C) :- askCaseFinal(C),case_du_camp(J,C),!.
-askValidCase(J,C) :- write('Cette case n''est pas dans votre camp, merci de fournir une case valide\n'),askValidCase(J,C).
+askValidCase(J,C,L) :- askCaseFinal(C),case_du_camp(J,C),nb_graines(C,L,G), G > 0, !.
+askValidCase(J,C,L) :- write('Cette case n''est pas dans votre camp, merci de fournir une case valide\n'),askValidCase(J,C,L).
 
 %Predicat askCase(C) : demande quelle case distribuée et renvoit la case
 askCase(C) :- current_input(STDIN),write('Quelle case souhaitez-vous distribuer?\n'),read_number(STDIN,C).
