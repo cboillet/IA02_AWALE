@@ -31,7 +31,7 @@ tour(joueur1).
 	affiche_espace(_).
 
 	%Predicat afficher(L) : affiche la liste L du jeu
-	afficher(L) :- diviser(L,L1,L2,1), affiche2(L2), nl, affiche1(L1).
+	afficher(L) :- diviser(L,L1,L2,1), affiche2(L2), nl, affiche1(L1), nl, nl.
 	
 	
 %Prédicat jouer(J,C,L) : le joueur J joue la case C
