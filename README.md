@@ -36,3 +36,8 @@ Fin :
 Aides :
 - changer de répertoire : change_directory('Z:/public_html/TP1').
 - executer programme : consult('age').
+
+/******STEP 3*******/
+- prédicats qui est le gagnant
+- prédicats detecter la fin de partie (points>25 ou famine en continue chez l'autre joueur)
+
