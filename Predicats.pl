@@ -58,7 +58,6 @@ case_du_camp(joueur2,C) :- C>6, C<13.
 
 
 %Prédicat distribuer(C,G,L,L2,CA) : distribue le nombre G de graines de la case C à la case d'arrivée CA
-% TODO : Ajouter la case d'arrivee
 distribuer(0,C,L,L,CA) :- CA is C-1, !.
 distribuer(G,13,L,L2,CA) :- distribuer(G,1,L,L2,CA).
 distribuer(GD,C,L,L4,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L3,CA), nb_graines(C,L,G), G1 is G+1, set_nb_graines(C,L3,G1,L4).
