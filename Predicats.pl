@@ -82,11 +82,3 @@ askValidCase(J,C) :- write('Cette case n''est pas dans votre camp, merci de four
 
 %Predicat askCase(C) : demande quelle case distribuée et renvoit la case
 askCase(C) :- current_input(STDIN),write('Quelle case souhaitez-vous distribuer?\n'),read_number(STDIN,C).
-
-
-%Prédicats test si plus de graines dans un champ
-%plus_graines(joueur1,6
-%plus_graines(joueur1,L,C):-
-
-%jouer() :- jouer&plusgraines()!.
-%jouer() :- jouer.
