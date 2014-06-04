@@ -38,6 +38,10 @@ Aides :
 - executer programme : consult('age').
 
 /******STEP 3*******/
-- prédicats qui est le gagnant
-- prédicats detecter la fin de partie (points>25 ou famine en continue chez l'autre joueur)
+- variable nbgraines par joueur //Camille
+- prédicats qui est le gagnant //Camille
+- prédicats detecter la fin de partie (famine en continue chez l'autre joueur),ramasse graines si fin de partie et test qui est le gagant //Camille
+
+- predicats teste tous les coups regarde si ca créer une famine et renvoi la liste des cases qui peuvent être jouées //Erwan
+-  ramasser: tester si ramasserinternal fait une famine //Jean
 
