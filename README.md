@@ -10,28 +10,29 @@ Besoins :
 - prédicat qui récupère les graines de la case et les mets dans la pôche du joueur recuperer(X,Y) //X recupere les graines de la case Y
 
 /********STEP 2 pour le 04/06**********/
-
 - finir affichage Cam
 - ramasser Jean
 - test famine (test si camp sans graines) Erwan 
 - input Jean
 
 
-- jouer=distrbuer, ramasser, tester famine et retour arrière si. 
+Jouer : 
+- distribuer
+- tester famine : si oui revenir à distribuer pour choisir un autre coup. S'il est impossible de choisir un autre coup, fin de la partie et le joueur qui devait jouer ramasse toutes les graines restantes.
+- si non ramasser
+- tester famine : si oui on ne ramasse pas mais on garde la distribution.
 
 
 Stratégie gagnante:
 - a chercher sur internet
-
 - prédicat qui teste les différentes possibilités de jeu (quelle case tirer) et valide celle qui répond aux mieux aux stratégie gagnantes.
 
 
 Fin :
-déclenchement fin du jeu
-puis gagne celui qui a le plus de point
+- déclenchement fin du jeu
+- puis gagne celui qui a le plus de graines et au moins 25 graines
 
-changer de répertoires:
-	change_directory('Z:/public_html/TP1').
 
-executer programme:
-	consult('age').
+Aides :
+- changer de répertoire : change_directory('Z:/public_html/TP1').
+- executer programme : consult('age').
