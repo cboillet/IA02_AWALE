@@ -20,11 +20,15 @@ tour(joueur1).
 
 	%Predicat afficher(L) : affiche une liste L dans l'ordre
 	affiche1([]) :- write('|').
-	affiche1([T|Q]) :- write('|'), write(T), affiche1(Q).
+	affiche1([T|Q]) :- write('|'), affiche_espace(T), write(T), affiche1(Q).
 
 	%Predicat afficher2(L) : affiche une liste L dans l'ordre inverse
 	affiche2([]) :- write('|').
-	affiche2([T|Q]) :- affiche2(Q), write(T), write('|').
+	affiche2([T|Q]) :- affiche2(Q), affiche_espace(T), write(T), write('|').
+	
+	%Predicat affiche_espace(NB) affiche un espace si NB<10
+	affiche_espace(NB) :- NB<10, write(' '),!.
+	affiche_espace(_).
 
 	%Predicat afficher(L) : affiche la liste L du jeu
 	afficher(L) :- diviser(L,L1,L2,1), affiche2(L2), nl, affiche1(L1).
@@ -47,14 +51,15 @@ famine(J,C,[T|Q]) :- C1 is C+1, famine(J,C1,Q).
 %Prédicat distribuer(C,G,L,LA,CA) : distribue le nombre GD de graines de la case C à la case d'arrivée CA
 % TODO : Ajouter la case d'arrivee
 distribuer(0,C,L,L,CA) :- CA is C-1, !.
-distribuer(GD,13,L,LA,CA) :- distribuer(GD,1,L,LA,CA).
-distribuer(GD,C,L,LA,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L3,CA), nb_graines(C,L,G), G1 is G+1, set_nb_graines(C,L3,G1,LA).
+distribuer(G,13,L,L2,CA) :- distribuer(G,1,L,L2,CA).
+distribuer(GD,C,L,L4,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L3,CA), nb_graines(C,L,G), G1 is G+1, set_nb_graines(C,L3,G1,L4).
 
-%Predicat ramasser graines ramasser(C,L,J,LA,NG) L liste de graines, C case où l'on arrive, L2, liste retournée une fois ramassée, NG nb de graines ramassée
-ramasser(C,L,J,L,0) :- \+case_du_camp(J,C), !. 
-ramasser(C,L,_,L,0) :- nb_graines(C,L,N), N>3, !.
-ramasser(C,L,_,L,0) :- nb_graines(C,L,N), N<2, !.
-ramasser(C,L,J,LA,NG) :- nb_graines(C,L,N), set_nb_graines(C,L,0,L2), C2 is C-1, write('test'), ramasser(C2,L2,J,LA,NG2), write('test2'), NG is N+NG2.
+%Predicat ramasser graines ramasser(L,C,J,L2,NG) L liste de graines, C case où l'on arrive, L2, liste retournée une fois ramassée, NG nb de graines ramassée
+ramasser(L,C,J,L,0) :- case_du_camp(J,C), !. 
+ramasser(L,C,_,L,0) :- nb_graines(C,L,N), N>3, !.
+ramasser(L,C,_,L,0) :- nb_graines(C,L,N), N<2, !.
+ramasser(L,0,J,L2,NG) :- ramasser(L,12,J,L2,NG).
+ramasser(L,C,J,L3,NG) :- nb_graines(C,L,N), set_nb_graines(C,L,0,L2), C2 is C-1, ramasser(L2,C2,J,L3,NG2), NG is N+NG2.
 
 
 %Prédicat nb_graines(C,L,G) : donne le nombre G de graines de la case C de la liste L
@@ -66,10 +71,12 @@ set_nb_graines(1,[_|Q],G,[G|Q]) :- !.
 set_nb_graines(C,[T|Q],G,[T|R]) :- C1 is C-1, set_nb_graines(C1,Q,G,R).
 
 
+%Predicat askCaseFinal(NB) : demande quelle case distribuée et renvoit la case, boucle tant que l'utilisateur ne rentre pas un nombre
+flush_instream(STREAM) :- get_char(STREAM,'\n'),!.
+flush_instream(STREAM) :- get_char(STREAM,_),flush_instream(STREAM).
+reAskCase(NB) :- write('Vous devez entrer un nombre\n'),current_input(STDIN),flush_instream(STDIN),askCaseFinal(NB).
+askCaseFinal(NB) :- catch(askCase(NB),_,reAskCase(NB)).
+>>>>>>> 34eea5a8f53ed03ef3a9611c13ac0ad385f46d11
 
-%Prédicats test si plus de graines dans un champ
-%plus_graines(joueur1,6
-%plus_graines(joueur1,L,C):-
-
-%jouer() :- jouer&plusgraines()!.
-%jouer() :- jouer.
+%Predicat askCase(NB) : demande quelle case distribuée et renvoit la case
+askCase(NB) :- current_input(STDIN),write('Quelle case souhaitez-vous distribuer?\n'),read_number(STDIN,NB).
