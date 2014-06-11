@@ -2,8 +2,9 @@
 
 %include('Donnees.pl').
 etat_initial([4,4,4,4,4,4,4,4,4,4,4,4]).
+etat_fin_partie([1,0,0,0,0,0,0,0,0,0,0,0]).
 liste_test([1,2,3,4,5,6,7,8,9,10,11,12]).
-liste_test2([1,0,2,3,0,1,0,0,0,0,0,0]).
+liste_test2([1,24,2,3,0,1,0,0,0,0,24,0]).
 liste_test3([1,0,2,3,0,1,1,0,0,0,0,0]).
 
 nb_jetons(joueur1,0).
@@ -80,7 +81,7 @@ coups_possibles(J,C,L,LCases) :- C1 is C-1, coups_possibles(J,C1,L,LCases).
 %Prédicat distribuer(GD,C,L,LA,CA) : distribue le nombre G de graines de la case C à la case d'arrivée CA
 distribuer(0,C,L,L,CA) :- CA is C-1, !.
 distribuer(GD,13,L,LA,CA) :- distribuer(GD,1,L,LA,CA).
-distribuer(GD,C,L,LA,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L1,CA), nb_graines(C,L,G), G1 is G+1, set_nb_graines(C,L1,G1,LA).
+distribuer(GD,C,L,LA,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L1,CA), nb_graines(C,L1,G), G1 is G+1, set_nb_graines(C,L1,G1,LA).
 
 %Predicat ramasser_internal(L,C,J,LA,G) : ramasse les graines L liste de graines, C case où l'on arrive, LA, liste retournée une fois ramassée, NG nb de graines ramassée
 ramasser_internal(J,C,L,L,0) :- case_du_camp(J,C), !. 
@@ -115,9 +116,22 @@ afficherListe([T|Q]) :- write(T),write(','),afficherListe(Q).
 contains([T|_],T):-!.
 contains([_|Q],C):-contains(Q,C).
 
-%Predicat tourDeJeu(J,L,LA,NGJ,NGJA) : un tour de Jeu du joueur J, L liste départ, LA liste arrivée, NGJ = nb graines original du joueur, NGJA = nombre de graines à l'arrivée
-tourDeJeu(J,L,LA,NGJ,NGJA):-coups_possibles(J,L,LCases),afficherIndiceCases(LCases),askValidCase(J,C,L),contains(LCases,C),jouer(J,C,L,LA,NGJ,NGJA),!.
-tourDeJeu(J,L,LA,NGJ,NGJA):-write("Ce coup est impossible, il affame l'adversaire.\n"),tourDeJeu(J,L,LA,NGJ,NGJA).
+%Predicat tourDeJeu(J,L,LA,NGJ,NGJA,C,IA)
+tourDeJeu(J,L,LA,NGJ,NGJA,C,0):-tourDeJeuHumain(J,L,LA,NGJ,NGJA,C).
+tourDeJeu(J,L,LA,NGJ,NGJA,C,1):-tourDeJeuIA1(J,L,LA,NGJ,NGJA,C).
+
+%Predicat tourDeJeuHumain(J,L,LA,NGJ,NGJA) : un tour de Jeu du joueur J, L liste départ, LA liste arrivée, NGJ = nb graines original du joueur, NGJA = nombre de graines à l'arrivée,C=bool continuer de jouer
+tourDeJeuHumain(J,L,LA,NGJ,NGJA,0):-coups_possibles(J,L,LCases), LCases==[],!.
+tourDeJeuHumain(J,L,LA,NGJ,NGJA,1):-coups_possibles(J,L,LCases),afficherIndiceCases(LCases),askValidCase(J,C,L),contains(LCases,C),jouer(J,C,L,LA,NGJ,NGJA),!.
+tourDeJeuHumain(J,L,LA,NGJ,NGJA,1):-write("Ce coup est impossible, il affame l'adversaire.\n"),tourDeJeuHumain(J,L,LA,NGJ,NGJA,1).
+
+%Predicat liste_joueur(J,L,LR)
+liste_joueur(joueur1,[T|Q],T).
+liste_joueur(joueur2,[T|[Q]],Q).
+
+%Predicat tourDeJeuIA1(J,L,LA,NGJ,NGJA,C)
+tourDeJeuIA1(J,L,LA,NGJ,NGJA,0):-coups_possibles(J,L,LCases), LCases==[],!.
+tourDeJeuIA1(J,L,LA,NGJ,NGJA,1):-coups_possibles(J,L,[T|Q]),jouer(J,T,L,LA,NGJ,NGJA).
 
 %Predicat afficherTour(J) : affiche "Tour de J"
 afficherTour(J):- write('Tour de ') , write(J), write('\n').
@@ -126,9 +140,22 @@ afficherTour(J):- write('Tour de ') , write(J), write('\n').
 afficherNbGrainesJ(J,NGJ):-write(J), write(' possede '),write(NGJ),write(' graines.\n').
 afficherNbGraines(NGJ1,NGJ2):-afficherNbGrainesJ(joueur1,NGJ1),afficherNbGrainesJ(joueur2,NGJ2).
 
-%Predicat bigGame(J,L,NGJ1,NGJ2) : jeu : J = joueur en cours, L = plateau jeu, NGJ1 = nbGrainesJ1, NGJ2 = nbGrainesJ2
-bigGame(joueur1,L,NGJ1,NGJ2):-afficherTour(joueur1),afficherNbGraines(NGJ1,NGJ2),afficher(L),tourDeJeu(joueur1,L,LA,NGJ1,NGJ1A),bigGame(joueur2,LA,NGJ1A,NGJ2).
-bigGame(joueur2,L,NGJ1,NGJ2):-afficherTour(joueur2),afficherNbGraines(NGJ1,NGJ2),afficher(L),tourDeJeu(joueur2,L,LA,NGJ2,NGJ2A),bigGame(joueur1,LA,NGJ1,NGJ2A).
+%Predicat 
+totalGraines(L,NG1,NG2):-sum_list(L,X),Y is X+NG1+NG2,write(Y),nl.
+
+%Predicat bigGame(J,L,NGJ1,NGJ2,IA1,IA2) : jeu : J = joueur en cours, L = plateau jeu, NGJ1 = nbGrainesJ1, NGJ2 = nbGrainesJ2
+bigGame(joueur1,L,NGJ1,NGJ2,IA1,IA2):-afficherTour(joueur1),afficherNbGraines(NGJ1,NGJ2),afficher(L),tourDeJeu(joueur1,L,LA,NGJ1,NGJ1A,C,IA1),C=1,totalGraines(LA,NGJ1A,NGJ2),bigGame(joueur2,LA,NGJ1A,NGJ2,IA1,IA2),!.
+bigGame(joueur2,L,NGJ1,NGJ2,IA1,IA2):-afficherTour(joueur2),afficherNbGraines(NGJ1,NGJ2),afficher(L),tourDeJeu(joueur2,L,LA,NGJ2,NGJ2A,C,IA2),C=1,totalGraines(LA,NGJ1,NGJ2A),bigGame(joueur1,LA,NGJ1,NGJ2A,IA1,IA2),!.
+bigGame(_,L,NGJ1,NGJ2,IA1,IA2):-finpartie(L,NGJ1,NGJ2).
+
+%Predicat compare le nombre de jeton gagne(NGJ2,NGJ2)
+gagne(NGJ1,NGJ1):-write('Egalité des joueurs').
+gagne(NGJ1,NGJ2):-NGJ1>NGJ2,!,write('Le joueur 1 gagne').
+gagne(NGJ1,NGJ2):-write('Le joueur 2 gagne').
+
+%predicat finpartie(L,NGJ1,NGJ2) L liste du jeu, NGJ1 nombre de jetons joueur1, NGJ2 nombre de jetons joueur2
+finpartie(L,NGJ1,NGJ2):-diviser(L,L1,L2,12), sum_list(L2,NG1), sum_list(L1,NG2), N1 is NGJ1+NG1, N2 is NGJ2+NG2,afficherNbGraines(N1,N2),gagne(N1,N2).
 
 %Predicat main() : lance le jeu
-main(_):-tour(J),etat_initial(L),bigGame(J,L,0,0).
+main(_):-tour(J),etat_initial(L),bigGame(J,L,0,0,1,1).
+main2(_):-tour(J),etat_fin_partie(L),bigGame(J,L,0,0,1,1).
