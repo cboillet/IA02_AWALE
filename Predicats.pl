@@ -53,7 +53,9 @@ set_nb_graines(C,[T|Q],G,[T|R]) :- C1 is C-1, set_nb_graines(C1,Q,G,R).
 
 
 %Prédicat jouer(J,C,L) : le joueur J joue la case C
-jouer(J,C,L,LA) :- coups_possibles(J,C,L,LCases), member(C,LCases), nb_graines(C,L,G), C1 is C+1, set_nb_graines(C,L,0,L2), distribuer(G,C1,L2,LA,_), !.
+%jouer(J,C,L,LA) :- coups_possibles(J,C,L,LCases), member(C,LCases), nb_graines(C,L,G), C1 is C+1, set_nb_graines(C,L,0,L2), distribuer(G,C1,L2,LA,_), !.
+%Prédicat jouer(J,C,L) : le joueur J joue la case C
+jouer(J,C,L,LA2,NGJ,NGJA) :- coups_possibles(J,C,L,LCases), member(C,LCases), nb_graines(C,L,G), C1 is C+1, set_nb_graines(C,L,0,L2), distribuer(G,C1,L2,LA,CA), ramasser(J,CA,LA,LA2,NGR),NGJA is NGJ+NGR,!.
 
 %Prédicat case_du_camp(J,C) : teste si le joueur peut jouer la case C
 case_du_camp(joueur1,C) :- C<7, C>0.
@@ -103,3 +105,30 @@ askValidCase(J,C,L) :- write('Cette case n''est pas valide (elle n''est pas dans
 
 %Predicat askCase(C) : demande quelle case distribuée et renvoie la case
 askCase(C) :- current_input(STDIN), write('Quelle case souhaitez-vous distribuer?\n'), read_number(STDIN,C).
+
+%Predicat afficherIndiceCases(LCases) : affiche un message d'indice avec les LCases possibilité de jeu
+afficherIndiceCases(LCases) :- write('Indice : vous pouvez jouer les cases : '),afficherListe(LCases).
+afficherListe([T]) :- write(T),write('\n').
+afficherListe([T|Q]) :- write(T),write(','),afficherListe(Q).
+
+%Predicat contains(L,C) : Liste L contient-elle la case C
+contains([T|_],T):-!.
+contains([_|Q],C):-contains(Q,C).
+
+%Predicat tourDeJeu(J,L,LA,NGJ,NGJA) : un tour de Jeu du joueur J, L liste départ, LA liste arrivée, NGJ = nb graines original du joueur, NGJA = nombre de graines à l'arrivée
+tourDeJeu(J,L,LA,NGJ,NGJA):-coups_possibles(J,L,LCases),afficherIndiceCases(LCases),askValidCase(J,C,L),contains(LCases,C),jouer(J,C,L,LA,NGJ,NGJA),!.
+tourDeJeu(J,L,LA,NGJ,NGJA):-write("Ce coup est impossible, il affame l'adversaire.\n"),tourDeJeu(J,L,LA,NGJ,NGJA).
+
+%Predicat afficherTour(J) : affiche "Tour de J"
+afficherTour(J):- write('Tour de ') , write(J), write('\n').
+
+%Predicat afficherNbGraines(NGJ1,NGJ2) : affiche "Nb graines joueur X : NGJX"
+afficherNbGrainesJ(J,NGJ):-write(J), write(' possede '),write(NGJ),write(' graines.\n').
+afficherNbGraines(NGJ1,NGJ2):-afficherNbGrainesJ(joueur1,NGJ1),afficherNbGrainesJ(joueur2,NGJ2).
+
+%Predicat bigGame(J,L,NGJ1,NGJ2) : jeu : J = joueur en cours, L = plateau jeu, NGJ1 = nbGrainesJ1, NGJ2 = nbGrainesJ2
+bigGame(joueur1,L,NGJ1,NGJ2):-afficherTour(joueur1),afficherNbGraines(NGJ1,NGJ2),afficher(L),tourDeJeu(joueur1,L,LA,NGJ1,NGJ1A),bigGame(joueur2,LA,NGJ1A,NGJ2).
+bigGame(joueur2,L,NGJ1,NGJ2):-afficherTour(joueur2),afficherNbGraines(NGJ1,NGJ2),afficher(L),tourDeJeu(joueur2,L,LA,NGJ2,NGJ2A),bigGame(joueur1,LA,NGJ1,NGJ2A).
+
+%Predicat main() : lance le jeu
+main(_):-tour(J),etat_initial(L),bigGame(J,L,0,0).
