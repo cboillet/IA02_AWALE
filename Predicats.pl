@@ -4,6 +4,7 @@
 etat_initial([4,4,4,4,4,4,4,4,4,4,4,4]).
 liste_test([1,2,3,4,5,6,7,8,9,10,11,12]).
 liste_test2([1,0,2,3,0,1,0,0,0,0,0,0]).
+liste_test3([1,0,2,3,0,1,1,0,0,0,0,0]).
 
 nb_jetons(joueur1,0).
 nb_jetons(joueur2,0).
@@ -86,6 +87,9 @@ ramasser_internal(_,C,L,L,0) :- nb_graines(C,L,G1), G1<2, !.
 ramasser_internal(J,0,L,LA,G) :- ramasser_internal(J,12,L,LA,G).
 ramasser_internal(J,C,L,LA,G) :- nb_graines(C,L,G1), set_nb_graines(C,L,0,L1), C1 is C-1, ramasser_internal(J,C1,L1,LA,G2), G is G1+G2.
 
+%Predicat ramasser(J,C,L,LA,G): ramasse les graines L liste de graines, C case où l'on arrive, LA, liste retournée une fois ramassée, NG nb de graines ramassée en s'assurant qu'il n'y a pas famine
+ramasser(J,C,L,LA,G):-ramasser_internal(J,C,L,LA,G),joueur_adverse(J,JA),\+famine(JA,LA),!.
+ramasser(J,C,L,L,0):-ramasser_internal(J,C,L,_,_).
 
 %Predicat askCaseFinal(C) : demande quelle case distribuée et renvoit la case, boucle tant que l'utilisateur ne rentre pas un nombre
 flush_instream(STREAM) :- get_char(STREAM,'\n'), !.
