@@ -44,4 +44,10 @@ Aides :
 
 - predicats teste tous les coups regarde si ca créer une famine et renvoi la liste des cases qui peuvent être jouées //Erwan
 -  ramasser: tester si ramasserinternal fait une famine //Jean
+  
 
+/*******STEP 4*****/
+- IA basique (prends parmis les coups possible la case avec le plus de graines)
+- recherches pour une IA plus évoluée (min-max)
+- coder l'IA min-max
+- distribuer doit sauter la case d'origine d'où la distribution a commencé
