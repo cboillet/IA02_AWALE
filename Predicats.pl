@@ -16,11 +16,9 @@ lancerJeu(IA1,IA2) :- tour(J), etat_initial(L), jeu(J,L,0,0,IA1,IA2).
 % Predicat jeu(J,L,NGJ1,NGJ2) : le jeu.
 % J = joueur en cours, L = etat du jeu, NGJ1 = graines de J1, NGJ2 = graines de J2, IA1 = joueur1 est une IA ou un joueur humain, IA2 = joueur2 est une IA ou un joueur humain
 % IA1 et IA02 sont le numéro du type de l'IA ou 0 si c'est un joueur humain.
-jeu(joueur1,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur1), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur1,L,LA,NGJ1,NGJ1A,C,IA1), C = 1, totalGraines(LA,NGJ1A,NGJ2), jeu(joueur2,LA,NGJ1A,NGJ2,IA1,IA2), !.
-jeu(joueur2,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur2), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur2,L,LA,NGJ2,NGJ2A,C,IA2), C = 1, totalGraines(LA,NGJ1,NGJ2A), jeu(joueur1,LA,NGJ1,NGJ2A,IA1,IA2), !.
+jeu(joueur1,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur1), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur1,L,LA,NGJ1,NGJ1A,C,IA1), C = 1, jeu(joueur2,LA,NGJ1A,NGJ2,IA1,IA2), !.
+jeu(joueur2,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur2), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur2,L,LA,NGJ2,NGJ2A,C,IA2), C = 1, jeu(joueur1,LA,NGJ1,NGJ2A,IA1,IA2), !.
 jeu(_,L,NGJ1,NGJ2,IA1,IA2) :- finPartie(L,NGJ1,NGJ2).
-
-totalGraines(L,NG1,NG2):-sum_list(L,X),Y is X+NG1+NG2,write(Y),nl.
 
 % Predicat tourDeJeu(J,L,LA,NGJ,NGJA,C,IA) : un tour de jeu du joueur J.
 % L = etat de départ, LA = etat d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, C = la case jouée, IA = le type du joueur
