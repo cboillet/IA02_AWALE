@@ -1,8 +1,8 @@
 /** Base de données **/
 etat_initial([4,4,4,4,4,4,4,4,4,4,4,4]).
 
-joueur_adverse(joueur1,JA) :- JA = joueur2.
-joueur_adverse(joueur2,JA) :- JA = joueur1.
+joueurAdverse(joueur1,JA) :- JA = joueur2.
+joueurAdverse(joueur2,JA) :- JA = joueur1.
 
 tour(joueur1).
 
@@ -19,16 +19,18 @@ lancerJeu(IA1,IA2) :- tour(J), etat_initial(L), jeu(J,L,0,0,IA1,IA2).
 
 % Predicat jeu(J,L,NGJ1,NGJ2,IA1,IA2) : le jeu.
 % J = joueur en cours, L = état du jeu, NGJ1 = graines de J1, NGJ2 = graines de J2, IA1 = le type du joueur1, IA2 = le type du joueur2.
-jeu(joueur1,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur1), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur1,L,LA,NGJ1,NGJ1A,CJ,IA1), CJ = 1, jeu(joueur2,LA,NGJ1A,NGJ2,IA1,IA2), !.
-jeu(joueur2,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur2), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur2,L,LA,NGJ2,NGJ2A,CJ,IA2), CJ = 1, jeu(joueur1,LA,NGJ1,NGJ2A,IA1,IA2), !.
+jeu(joueur1,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur1), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur1,L,LA,NGJ1,NGJ2,NGJ1A,CJ,IA1), CJ = 1, jeu(joueur2,LA,NGJ1A,NGJ2,IA1,IA2), !.
+jeu(joueur2,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur2), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur2,L,LA,NGJ2,NGJ1,NGJ2A,CJ,IA2), CJ = 1, jeu(joueur1,LA,NGJ1,NGJ2A,IA1,IA2), !.
 jeu(_,L,NGJ1,NGJ2,_,_) :- finPartie(L,NGJ1,NGJ2).
 
 % Predicat tourDeJeu(J,L,LA,NGJ,NGJA,CJ,IA) : un tour de jeu du joueur J.
 % L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer, IA = le type du joueur.
-tourDeJeu(J,L,LA,NGJ,NGJA,CJ,0) :- tourDeJeuHumain(J,L,LA,NGJ,NGJA,CJ).
-tourDeJeu(J,L,LA,NGJ,NGJA,CJ,1) :- write('L''IA joue \n'), tourDeJeuIA1(J,L,LA,NGJ,NGJA,CJ).
+tourDeJeu(J,L,LA,NGJ,_,NGJA,CJ,0) :- tourDeJeuHumain(J,L,LA,NGJ,NGJA,CJ).
+tourDeJeu(J,L,LA,NGJ,_,NGJA,CJ,1) :- write('L''IA joue \n'), tourDeJeuIA1(J,L,LA,NGJ,NGJA,CJ).
+tourDeJeu(J,L,LA,NGJ,NGJ2,NGJA,CJ,21) :- write('L''IA joue \n'), tourDeJeuIA2(J,L,LA,NGJ,NGJ2,NGJA,1,CJ).
+tourDeJeu(J,L,LA,NGJ,NGJ2,NGJA,CJ,23) :- write('L''IA joue \n'), tourDeJeuIA2(J,L,LA,NGJ,NGJ2,NGJA,3,CJ).
 
-% Predicat tourDeJeuHumain(J,L,LA,NGJ,NGJA,CJ) : un tour de Jeu du joueur J;=, humain.
+% Predicat tourDeJeuHumain(J,L,LA,NGJ,NGJA,CJ) : un tour de jeu du joueur J, humain.
 % L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer.
 tourDeJeuHumain(J,L,_,_,_,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
 tourDeJeuHumain(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,LCases), afficherIndiceCases(LCases), askValidCase(J,C,L), member(C,LCases), jouer(J,C,L,LA,NGJ,NGJA), !.
@@ -44,28 +46,46 @@ finPartie(L,NGJ1,NGJ2) :- diviser(L,L1,L2,12), sum_list(L2,NG1), sum_list(L1,NG2
 
 
 /** Les IA **/
+/* IA1 : choisit la première case */
 % Predicat tourDeJeuIA1(J,L,LA,NGJ,NGJA,CJ) : un tour de jeu du joueur J, IA.
 % L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer.
 tourDeJeuIA1(J,L,_,_,_,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
-tourDeJeuIA1(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,[T|_]), jouer(J,T,L,LA,NGJ,NGJA), sleep(1), write('Case distribuee : '), write(T), nl.
+tourDeJeuIA1(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,[T|_]), jouer(J,T,L,LA,NGJ,NGJA), sleep(0), write('Case distribuee : '), write(T).%, sleep(1), nl.
 
+/* IA2 : algorithme min-max */
+% Prédicat tourDeJeuIA2(J,L,LA,NGJ,NGJA,Prof,CJ) : un tour de jeu du joueur J, IA.
+% L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer, Prof = profondeur d exploration
+tourDeJeuIA2(J,L,_,_,_,_,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
+tourDeJeuIA2(J,L,LA,NGJ,NGJ2,NGJA,Prof,1):- mouvementsPossibles(J,L,[T|Q]), simulerIA2(J,L,[T|Q],NGJ,NGJ2,_,Prof,T,CA,-1000,_), jouer(J,CA,L,LA,NGJ,NGJA), write('Case distribuee : '), write(CA).%, sleep(1), nl.
 
-% Prédicat tourDeJeuIA2(J,L,LA,NGJ,NGJA,CJ,NV) : un tour de jeu du joueur J, IA.
-% L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer, NV profondeur d exploration
-%tourDeJeuIA2(J,_,LA,_,NGJA,_,0):-
-%tourDeJeuIA2(J,L,LA,NGJ,NGJA,CJ,NV):- mouvementsPossibles(J,L,LC),simuler(J,LC,NV,C,CA),NV2 is NV-1,tourDeJeuIA2(),jouer().
+% Prédicat simulerIA2(J,L,LCases,NGJ,NGJ2,Prof,C,CA,P,PA) : simule le mouvement C et renvoie le mouvement CA, celui des mouvements possibles avec le plus grand poids.
+simulerIA2(_,_,[],_,_,_,_,C,C,_,_) :- !.
+simulerIA2(J,L,[T|Q],NGJ,NGJ2,NGJA,Prof,_,CA,P,PA) :- jouer(J,T,L,LA,NGJ,NGJA1), JA = joueurAdverse(J), minIA2(JA,LA,NGJA1,NGJ2,_,Prof,P1), P1 > P, !, simulerIA2(J,LA,Q,NGJ,NGJ2,NGJA,Prof,T,CA,P1,PA).
+simulerIA2(J,L,[_|Q],NGJ,NGJ2,NGJA,Prof,C,CA,P,PA) :- simulerIA2(J,L,Q,NGJ,NGJ2,NGJA,Prof,C,CA,P,PA).
 
-%poidsEtat(J,NGJ1,NGJ2,P) calcul le poides de l'état quand c'est au joueur J de jouer avec NGJ1 le nombre de graines du joueur1
-poidsEtat(J,NGJ1,NGJ2,P):-J==joueur1,P=NGJ1-NGJ2,!,P=NGJ2-NGJ1.
-%Prédicat simuler(J,L2,NV,C,CA,NGJ1,NGJ2) : teste si le joueur J est en famine, c-à-d. s'il n'a plus de graines dans son camp.
-%simuler(_,[],_,C,CA,NGJ1,NJG2):- !.
-%simuler(J,[T|Q],C,CA,NGJ1,NJG2):- jouer(J,C,L) min_list[]
+% Prédicat minIA2(J,L,NGJ,NGJ2,NGJA,Prof,P)
+minIA2(J,_,NGJ,NGJ2,_,0,P) :- !, poidsEtat(J,NGJ,NGJ2,P).
+minIA2(J,L,NGJ,NGJ2,_,_,P) :- mouvementsPossibles(J,L,LCases), LCases == [], !, poidsEtat(J,NGJ,NGJ2,P).
+minIA2(J,L,NGJ,NGJ2,NGJA,Prof,P) :- mouvementsPossibles(J,L,[T|Q]), simulerMinIA2(J,L,[T|Q],NGJ,NGJ2,NGJA,Prof,1000,P).
 
-%famine(_,_,[]) :- !.
-%famine(J,C,[T|Q]) :- caseDuCamp(J,C), !, T =:= 0, C1 is C+1, famine(J,C1,Q).
-%famine(J,C,[_|Q]) :- C1 is C+1, famine(J,C1,Q).
+% Prédicat simulerMinIA2(J,L,LCases,NGJ,NGJ2,NGJA,Prof,P,PA) : simule le mouvement C et renvoie le mouvement CA, celui des mouvements possibles avec le plus petit poids.
+simulerMinIA2(_,_,[],_,_,_,_,P,P) :- !.
+simulerMinIA2(J,L,[T|Q],NGJ,NGJ2,NGJA,Prof,P,PA) :- jouer(J,T,L,LA,NGJ,NGJA1), JA = joueurAdverse(J), Prof1 = Prof - 1, maxIA2(JA,LA,NGJA1,NGJ2,Prof1,P1), P1 < P, !, simulerMinIA2(J,LA,Q,NGJ,NGJ2,NGJA,Prof,P1,PA).
+simulerMinIA2(J,L,[_|Q],NGJ,NGJ2,NGJA,Prof,P,PA) :- simulerMinIA2(J,L,Q,NGJ,NGJ2,NGJA,Prof,P,PA).
 
+% Prédicat maxIA2(J,L,NGJ,NGJ2,NGJA,Prof,P)
+maxIA2(J,_,NGJ,NGJ2,_,0,P) :- !, poidsEtat(J,NGJ,NGJ2,P).
+maxIA2(J,L,NGJ,NGJ2,_,_,P) :- mouvementsPossibles(J,L,LCases), LCases == [], !, poidsEtat(J,NGJ,NGJ2,P).
+maxIA2(J,L,NGJ,NGJ2,NGJA,Prof,P) :- mouvementsPossibles(J,L,[T|Q]), simulerMaxIA2(J,L,[T|Q],NGJ,NGJ2,NGJA,Prof,-1000,P).
 
+% Prédicat simulerMaxIA2(J,L,LCases,NGJ,NGJ2,NGJA,Prof,P,PA) : simule le mouvement C et renvoie le mouvement CA, celui des mouvements possibles avec le plus grand poids.
+simulerMaxIA2(_,_,[],_,_,_,_,P,P) :- !.
+simulerMaxIA2(J,L,[T|Q],NGJ,NGJ2,NGJA,Prof,P,PA) :- jouer(J,T,L,LA,NGJ,NGJA1), JA = joueurAdverse(J), Prof1 = Prof - 1, minIA2(JA,LA,NGJA1,NGJ2,Prof1,P1), P1 > P, !, simulerMaxIA2(J,LA,Q,NGJ,NGJ2,NGJA,Prof,P1,PA).
+simulerMaxIA2(J,L,[_|Q],NGJ,NGJ2,NGJA,Prof,P,PA) :- simulerMaxIA2(J,L,Q,NGJ,NGJ2,NGJA,Prof,P,PA).
+
+% Prédicat poidsEtat(J,NGJ1,NGJ2,P) : calcule le poids P de l'état de jeu pour le joueur J, c-à-d. combien c'est un état favorable ou pour le joueur.
+poidsEtat(joueur1,NGJ1,NGJ2,P) :- P = NGJ1-NGJ2, !.
+poidsEtat(joueur2,NGJ1,NGJ2,P) :- P = NGJ2-NGJ1, !.
 
 /** Fin IA **/
 
@@ -160,7 +180,7 @@ famine(J,C,[_|Q]) :- C1 is C+1, famine(J,C1,Q).
 % Prédicat mouvementsPossibles(J,L,LCases) : renvoie la liste des cases possibles pour le joueur, c-à-d. celles qui appartiennent au joueur, non vides, et n'entrainant pas de famine chez l'autre joueur
 mouvementsPossibles(J,L,LCases) :- length(L,C), mouvementsPossibles(J,C,L,LCases).
 mouvementsPossibles(_,0,_,[]) :- !.
-mouvementsPossibles(J,C,L,LCases) :- caseDuCamp(J,C), nbGraines(C,L,G), G > 0, joueur_adverse(J,JA), distribuer(G,C,C,L,LA,_), \+famine(JA,LA), !, C2 is C-1, mouvementsPossibles(J,C2,L,LCases1), LCases = [C|LCases1]. 
+mouvementsPossibles(J,C,L,LCases) :- caseDuCamp(J,C), nbGraines(C,L,G), G > 0, joueurAdverse(J,JA), distribuer(G,C,C,L,LA,_), \+famine(JA,LA), !, C2 is C-1, mouvementsPossibles(J,C2,L,LCases1), LCases = [C|LCases1]. 
 mouvementsPossibles(J,C,L,LCases) :- C1 is C-1, mouvementsPossibles(J,C1,L,LCases).
 
 % Prédicat distribuer(GD,CD,C,L,LA,CA) : distribue le nombre GD de graines de la case CD à la case d'arrivée CA.77
@@ -172,7 +192,7 @@ distribuer(GD,CD,C,L,LA,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,CD,C1,L,L1
 
 % Predicat ramasser(J,C,L,LA,G): ramasse les graines. 
 % L = liste de graines, C = case où l'on arrive, LA, liste retournée une fois ramassée, NG nb de graines ramassée en s'assurant qu'il n'y a pas famine.
-ramasser(J,C,L,LA,G):-ramasser_internal(J,C,L,LA,G), joueur_adverse(J,JA),\+famine(JA,LA),!.
+ramasser(J,C,L,LA,G):-ramasser_internal(J,C,L,LA,G), joueurAdverse(J,JA),\+famine(JA,LA),!.
 ramasser(J,C,L,L,0):-ramasser_internal(J,C,L,_,_).
 
 % Predicat ramasser_internal(L,C,J,LA,G) : ramasse les graines.
