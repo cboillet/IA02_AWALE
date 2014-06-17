@@ -1,10 +1,12 @@
 /** Base de données **/
-etat_initial([1,1,1,1,1,1,1,1,1,1,1,1]).
+etat_initial([4,4,4,4,4,4,4,4,4,4,4,4]).
 
 joueur_adverse(joueur1,JA) :- JA = joueur2.
 joueur_adverse(joueur2,JA) :- JA = joueur1.
 
 tour(joueur1).
+
+grainesMinVictoire(25). % Le nombre minimum de graines à avoir pour gagne
 
 /** Fin base de données **/
 
@@ -90,9 +92,9 @@ afficherListe([T|Q]) :- write(T), write(','), afficherListe(Q).
 
 % Predicat gagne(NGJ1,NGJ1) : affiche le gagnant du jeu.
 % NGJ1 = graines du joueur1, NGJ2 = graines du joueur2.
-gagne(NGJ1,NGJ1) :- write('Egalité des joueurs').
-gagne(NGJ1,NGJ2) :- NGJ1 > NGJ2, !, write('Le joueur 1 gagne').
-gagne(NGJ1,NGJ2) :- write('Le joueur 2 gagne').
+gagne(NGJ1,NGJ2) :- NGJ1 > NGJ2, grainesMinVictoire(GM), NGJ1 >= GM, !, write('Le joueur 1 gagne').
+gagne(NGJ1,NGJ2) :- grainesMinVictoire(GM), NGJ2 >= GM, !, write('Le joueur 2 gagne').
+gagne(_,_) :- write('Aucun gagnant, egalite des joueurs').
 
 
 % Predicat afficher(L) : affiche l'état du jeu.
