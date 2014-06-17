@@ -35,7 +35,7 @@ tourDeJeuHumain(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,LCases), afficherI
 tourDeJeuHumain(J,L,LA,NGJ,NGJA,1) :- write("Ce coup est impossible, il affame l'adversaire.\n"), tourDeJeuHumain(J,L,LA,NGJ,NGJA,1).
 
 % Prédicat jouer(J,C,L,LA,NGJ,NGJA) : le joueur J joue la case C.
-jouer(J,C,L,LA,NGJ,NGJA) :- mouvementsPossibles(J,C,L,LCases), member(C,LCases), nbGraines(C,L,G), C1 is C+1, setNbGraines(C,L,0,L2), distribuer(G,C1,L2,LA1,CA), ramasser(J,CA,LA1,LA,NGR), NGJA is NGJ+NGR, !.
+jouer(J,C,L,LA,NGJ,NGJA) :- mouvementsPossibles(J,C,L,LCases), member(C,LCases), nbGraines(C,L,G), setNbGraines(C,L,0,L2), distribuer(G,C,C,L2,LA1,CA), ramasser(J,CA,LA1,LA,NGR), NGJA is NGJ+NGR, !.
 
 % Prédicat finPartie(L,NGJ1,NGJ2) : le joueur J ramasse les derniers jetons, et le jeu affiche le vainqueur.
 finPartie(L,NGJ1,NGJ2) :- diviser(L,L1,L2,12), sum_list(L2,NG1), sum_list(L1,NG2), N1 is NGJ1+NG1, N2 is NGJ2+NG2, afficherNbGraines(N1,N2), gagne(N1,N2).
@@ -47,7 +47,7 @@ finPartie(L,NGJ1,NGJ2) :- diviser(L,L1,L2,12), sum_list(L2,NG1), sum_list(L1,NG2
 % Predicat tourDeJeuIA1(J,L,LA,NGJ,NGJA,CJ) : un tour de jeu du joueur J, IA.
 % L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer.
 tourDeJeuIA1(J,L,_,_,_,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
-tourDeJeuIA1(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,[T|_]), jouer(J,T,L,LA,NGJ,NGJA). %, sleep(0.25), write('Case distribuee : '), write(T), nl, sleep(1).
+tourDeJeuIA1(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,[T|_]), jouer(J,T,L,LA,NGJ,NGJA), sleep(1), write('Case distribuee : '), write(T), nl.
 
 /** Fin IA **/
 
@@ -129,26 +129,28 @@ nbGraines(C,[_|Q],G) :- C1 is C-1, nbGraines(C1,Q,G).
 setNbGraines(1,[_|Q],G,[G|Q]) :- !.
 setNbGraines(C,[T|Q],G,[T|R]) :- C1 is C-1, setNbGraines(C1,Q,G,R).
 
-%Prédicat caseDuCamp(J,C) : teste si le joueur peut jouer la case C.
+% Prédicat caseDuCamp(J,C) : teste si le joueur peut jouer la case C.
 caseDuCamp(joueur1,C) :- C<7, C>0.
 caseDuCamp(joueur2,C) :- C>6, C<13.
 
-%Prédicat famine(J,L) : teste si le joueur J est en famine, c-à-d. s'il n'a plus de graines dans son camp.
+% Prédicat famine(J,L) : teste si le joueur J est en famine, c-à-d. s'il n'a plus de graines dans son camp.
 famine(J,L) :- famine(J,1,L).
 famine(_,_,[]) :- !.
 famine(J,C,[T|Q]) :- caseDuCamp(J,C), !, T =:= 0, C1 is C+1, famine(J,C1,Q).
 famine(J,C,[_|Q]) :- C1 is C+1, famine(J,C1,Q).
 
-%Prédicat mouvementsPossibles(J,L,LCases) : renvoie la liste des cases possibles pour le joueur, c-à-d. celles qui appartiennent au joueur, non vides, et n'entrainant pas de famine chez l'autre joueur
+% Prédicat mouvementsPossibles(J,L,LCases) : renvoie la liste des cases possibles pour le joueur, c-à-d. celles qui appartiennent au joueur, non vides, et n'entrainant pas de famine chez l'autre joueur
 mouvementsPossibles(J,L,LCases) :- length(L,C), mouvementsPossibles(J,C,L,LCases).
 mouvementsPossibles(_,0,_,[]) :- !.
-mouvementsPossibles(J,C,L,LCases) :- caseDuCamp(J,C), nbGraines(C,L,G), G > 0, joueur_adverse(J,JA), C1 is C+1, distribuer(G,C1,L,LA,_), \+famine(JA,LA), !, C2 is C-1, mouvementsPossibles(J,C2,L,LCases1), LCases = [C|LCases1]. 
+mouvementsPossibles(J,C,L,LCases) :- caseDuCamp(J,C), nbGraines(C,L,G), G > 0, joueur_adverse(J,JA), distribuer(G,C,C,L,LA,_), \+famine(JA,LA), !, C2 is C-1, mouvementsPossibles(J,C2,L,LCases1), LCases = [C|LCases1]. 
 mouvementsPossibles(J,C,L,LCases) :- C1 is C-1, mouvementsPossibles(J,C1,L,LCases).
 
-%Prédicat distribuer(GD,C,L,LA,CA) : distribue le nombre GD de graines de la case C à la case d'arrivée CA.
-distribuer(0,C,L,L,CA) :- CA is C-1, !.
-distribuer(GD,13,L,LA,CA) :- distribuer(GD,1,L,LA,CA).
-distribuer(GD,C,L,LA,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L1,CA), nbGraines(C,L1,G), G1 is G+1, setNbGraines(C,L1,G1,LA).
+% Prédicat distribuer(GD,CD,C,L,LA,CA) : distribue le nombre GD de graines de la case CD à la case d'arrivée CA.77
+% GD = nombre de graines à distribuer, CD = la case du début de distribution, C = la prochaine case à distribuer, L = état de départ, LA = état après distribution
+distribuer(GD,CD,CD,L,LA,CA) :- C1 is CD+1, distribuer(GD,CD,C1,L,LA,CA), !.
+distribuer(0,_,C,L,L,CA) :- CA is C-1, !.
+distribuer(GD,CD,13,L,LA,CA) :- distribuer(GD,CD,1,L,LA,CA), !.
+distribuer(GD,CD,C,L,LA,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,CD,C1,L,L1,CA), nbGraines(C,L1,G), G1 is G+1, setNbGraines(C,L1,G1,LA).
 
 % Predicat ramasser(J,C,L,LA,G): ramasse les graines. 
 % L = liste de graines, C = case où l'on arrive, LA, liste retournée une fois ramassée, NG nb de graines ramassée en s'assurant qu'il n'y a pas famine.
@@ -156,7 +158,7 @@ ramasser(J,C,L,LA,G):-ramasser_internal(J,C,L,LA,G), joueur_adverse(J,JA),\+fami
 ramasser(J,C,L,L,0):-ramasser_internal(J,C,L,_,_).
 
 % Predicat ramasser_internal(L,C,J,LA,G) : ramasse les graines.
-% L = état de départ, C = case actuelle de distribution, LA = nouvel état du jeu après ramasser, NG = nb de graines ramassée.
+% L = état de départ, C = case actuelle de distribution, LA = état après ramasser, NG = nb de graines ramassée.
 ramasser_internal(J,C,L,L,0) :- caseDuCamp(J,C), !. 
 ramasser_internal(_,C,L,L,0) :- nbGraines(C,L,G1), G1>3, !.
 ramasser_internal(_,C,L,L,0) :- nbGraines(C,L,G1), G1<2, !.
