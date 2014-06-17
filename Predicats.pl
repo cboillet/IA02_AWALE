@@ -49,6 +49,24 @@ finPartie(L,NGJ1,NGJ2) :- diviser(L,L1,L2,12), sum_list(L2,NG1), sum_list(L1,NG2
 tourDeJeuIA1(J,L,_,_,_,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
 tourDeJeuIA1(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,[T|_]), jouer(J,T,L,LA,NGJ,NGJA), sleep(1), write('Case distribuee : '), write(T), nl.
 
+
+% Prédicat tourDeJeuIA2(J,L,LA,NGJ,NGJA,CJ,NV) : un tour de jeu du joueur J, IA.
+% L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer, NV profondeur d exploration
+%tourDeJeuIA2(J,_,LA,_,NGJA,_,0):-
+%tourDeJeuIA2(J,L,LA,NGJ,NGJA,CJ,NV):- mouvementsPossibles(J,L,LC),simuler(J,LC,NV,C,CA),NV2 is NV-1,tourDeJeuIA2(),jouer().
+
+%poidsEtat(J,NGJ1,NGJ2,P) calcul le poides de l'état quand c'est au joueur J de jouer avec NGJ1 le nombre de graines du joueur1
+poidsEtat(J,NGJ1,NGJ2,P):-J==joueur1,P=NGJ1-NGJ2,!,P=NGJ2-NGJ1.
+%Prédicat simuler(J,L2,NV,C,CA,NGJ1,NGJ2) : teste si le joueur J est en famine, c-à-d. s'il n'a plus de graines dans son camp.
+%simuler(_,[],_,C,CA,NGJ1,NJG2):- !.
+%simuler(J,[T|Q],C,CA,NGJ1,NJG2):- jouer(J,C,L) min_list[]
+
+%famine(_,_,[]) :- !.
+%famine(J,C,[T|Q]) :- caseDuCamp(J,C), !, T =:= 0, C1 is C+1, famine(J,C1,Q).
+%famine(J,C,[_|Q]) :- C1 is C+1, famine(J,C1,Q).
+
+
+
 /** Fin IA **/
 
 
