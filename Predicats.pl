@@ -1,5 +1,5 @@
 /** Base de données **/
-etat_initial([4,4,4,4,4,4,4,4,4,4,4,4]).
+etat_initial([1,1,1,1,1,1,1,1,1,1,1,1]).
 
 joueur_adverse(joueur1,JA) :- JA = joueur2.
 joueur_adverse(joueur2,JA) :- JA = joueur1.
@@ -10,28 +10,30 @@ tour(joueur1).
 
 
 /** Jeu **/
-% Predicat main(_) : lance le jeu.
+% Predicat lancerJeu(IA1,IA2) : lance le jeu.
+% IA = type du joueur1 
+% IA1 et IA02 définissent si le joueur est une IA ou un humain. Ce sont le numéro du type de l'IA ou 0 si c'est un joueur humain.
 lancerJeu(IA1,IA2) :- tour(J), etat_initial(L), jeu(J,L,0,0,IA1,IA2).
 
-% Predicat jeu(J,L,NGJ1,NGJ2) : le jeu.
-% J = joueur en cours, L = etat du jeu, NGJ1 = graines de J1, NGJ2 = graines de J2, IA1 = joueur1 est une IA ou un joueur humain, IA2 = joueur2 est une IA ou un joueur humain
-% IA1 et IA02 sont le numéro du type de l'IA ou 0 si c'est un joueur humain.
-jeu(joueur1,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur1), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur1,L,LA,NGJ1,NGJ1A,C,IA1), C = 1, jeu(joueur2,LA,NGJ1A,NGJ2,IA1,IA2), !.
-jeu(joueur2,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur2), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur2,L,LA,NGJ2,NGJ2A,C,IA2), C = 1, jeu(joueur1,LA,NGJ1,NGJ2A,IA1,IA2), !.
+% Predicat jeu(J,L,NGJ1,NGJ2,IA1,IA2) : le jeu.
+% J = joueur en cours, L = état du jeu, NGJ1 = graines de J1, NGJ2 = graines de J2, IA1 = le type du joueur1, IA2 = le type du joueur2.
+jeu(joueur1,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur1), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur1,L,LA,NGJ1,NGJ1A,CJ,IA1), CJ = 1, jeu(joueur2,LA,NGJ1A,NGJ2,IA1,IA2), !.
+jeu(joueur2,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur2), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur2,L,LA,NGJ2,NGJ2A,CJ,IA2), CJ = 1, jeu(joueur1,LA,NGJ1,NGJ2A,IA1,IA2), !.
 jeu(_,L,NGJ1,NGJ2,IA1,IA2) :- finPartie(L,NGJ1,NGJ2).
 
-% Predicat tourDeJeu(J,L,LA,NGJ,NGJA,C,IA) : un tour de jeu du joueur J.
-% L = etat de départ, LA = etat d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, C = la case jouée, IA = le type du joueur
-tourDeJeu(J,L,LA,NGJ,NGJA,C,0) :- tourDeJeuHumain(J,L,LA,NGJ,NGJA,C).
-tourDeJeu(J,L,LA,NGJ,NGJA,C,1) :- tourDeJeuIA1(J,L,LA,NGJ,NGJA,C).
+% Predicat tourDeJeu(J,L,LA,NGJ,NGJA,CJ,IA) : un tour de jeu du joueur J.
+% L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer, IA = le type du joueur.
+tourDeJeu(J,L,LA,NGJ,NGJA,CJ,0) :- tourDeJeuHumain(J,L,LA,NGJ,NGJA,CJ).
+tourDeJeu(J,L,LA,NGJ,NGJA,CJ,1) :- write('L''IA joue \n'), tourDeJeuIA1(J,L,LA,NGJ,NGJA,CJ).
 
-%Predicat tourDeJeuHumain(J,L,LA,NGJ,NGJA) : un tour de Jeu du joueur J, L liste départ, LA liste arrivée, NGJ = nb graines original du joueur, NGJA = nombre de graines à l'arrivée,C=bool continuer de jouer
-tourDeJeuHumain(J,L,LA,NGJ,NGJA,0) :- coups_possibles(J,L,LCases), LCases==[], !.
-tourDeJeuHumain(J,L,LA,NGJ,NGJA,1) :- coups_possibles(J,L,LCases), afficherIndiceCases(LCases), askValidCase(J,C,L), contains(LCases,C), jouer(J,C,L,LA,NGJ,NGJA), !.
+% Predicat tourDeJeuHumain(J,L,LA,NGJ,NGJA,CJ) : un tour de Jeu du joueur J;=, humain.
+% L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer.
+tourDeJeuHumain(J,L,LA,NGJ,NGJA,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
+tourDeJeuHumain(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,LCases), afficherIndiceCases(LCases), askValidCase(J,C,L), member(C,LCases), jouer(J,C,L,LA,NGJ,NGJA), !.
 tourDeJeuHumain(J,L,LA,NGJ,NGJA,1) :- write("Ce coup est impossible, il affame l'adversaire.\n"), tourDeJeuHumain(J,L,LA,NGJ,NGJA,1).
 
-% Prédicat jouer(J,C,L) : le joueur J joue la case C.
-jouer(J,C,L,LA2,NGJ,NGJA) :- coups_possibles(J,C,L,LCases), member(C,LCases), nb_graines(C,L,G), C1 is C+1, set_nb_graines(C,L,0,L2), distribuer(G,C1,L2,LA,CA), ramasser(J,CA,LA,LA2,NGR), NGJA is NGJ+NGR,!.
+% Prédicat jouer(J,C,L,LA,NGJ,NGJA) : le joueur J joue la case C.
+jouer(J,C,L,LA,NGJ,NGJA) :- mouvementsPossibles(J,C,L,LCases), member(C,LCases), nbGraines(C,L,G), C1 is C+1, setNbGraines(C,L,0,L2), distribuer(G,C1,L2,LA1,CA), ramasser(J,CA,LA1,LA,NGR), NGJA is NGJ+NGR, !.
 
 % Prédicat finPartie(L,NGJ1,NGJ2) : le joueur J ramasse les derniers jetons, et le jeu affiche le vainqueur.
 finPartie(L,NGJ1,NGJ2) :- diviser(L,L1,L2,12), sum_list(L2,NG1), sum_list(L1,NG2), N1 is NGJ1+NG1, N2 is NGJ2+NG2, afficherNbGraines(N1,N2), gagne(N1,N2).
@@ -40,17 +42,18 @@ finPartie(L,NGJ1,NGJ2) :- diviser(L,L1,L2,12), sum_list(L2,NG1), sum_list(L1,NG2
 
 
 /** Les IA **/
-%Predicat tourDeJeuIA1(J,L,LA,NGJ,NGJA,C)
-tourDeJeuIA1(J,L,LA,NGJ,NGJA,0) :- coups_possibles(J,L,LCases), LCases==[],!.
-tourDeJeuIA1(J,L,LA,NGJ,NGJA,1) :- coups_possibles(J,L,[T|Q]), jouer(J,T,L,LA,NGJ,NGJA).
+% Predicat tourDeJeuIA1(J,L,LA,NGJ,NGJA,CJ) : un tour de jeu du joueur J, IA.
+% L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer.
+tourDeJeuIA1(J,L,LA,NGJ,NGJA,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
+tourDeJeuIA1(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,[T|Q]), jouer(J,T,L,LA,NGJ,NGJA). %, sleep(0.25), write('Case distribuee : '), write(T), nl, sleep(1).
 
 /** Fin IA **/
 
 
 /** Choix joueur de la case à distribuer **/
 % Predicat askValidCase(J,C,L) : demande quelle case distribuer, jusqu'à ce qu'elle soit valide, et la renvoie.
-% J = joueur en cousr, C = case, L = etat du jeu
-askValidCase(J,C,L) :- askNombre(C), case_du_camp(J,C), nb_graines(C,L,G), G > 0, !.
+% J = joueur en cours, C = case, L = état du jeu.
+askValidCase(J,C,L) :- askNombre(C), caseDuCamp(J,C), nbGraines(C,L,G), G > 0, !.
 askValidCase(J,C,L) :- write('Cette case n''est pas valide car elle n''est pas dans votre camp ou ne contient pas de graines. Merci de fournir une case valide.\n'), askValidCase(J,C,L).
 
 % Predicat askNombre(C) : demande d'entrer un nombre, et le renvoie.
@@ -62,7 +65,7 @@ askNombre(C) :- catch(askCase(C), _, askNombreb(C)).
 % C = la case.
 askCase(C) :- current_input(STDIN), write('Quelle case souhaitez-vous distribuer?\n'), read_number(STDIN,C).
 
-% Configuration
+% Configuration.
 flush_instream(STREAM) :- get_char(STREAM,'\n'), !.
 flush_instream(STREAM) :- get_char(STREAM,_), flush_instream(STREAM).
 
@@ -71,22 +74,22 @@ flush_instream(STREAM) :- get_char(STREAM,_), flush_instream(STREAM).
 
 /** Prédicats d'affichage **/
 % Predicat afficherTour(J) : affiche le joueur dont c'est le tour.
-% J = le joueur
-afficherTour(J) :- write('Tour de '), write(J), nl.
+% J = le joueur.
+afficherTour(J) :- nl, write('Tour de '), write(J), nl.
 
 % Predicat afficherNbGraines(NGJ1,NGJ2) : affiche le nombre de graines possedées par les joueurs.
-% NGJ1 = graines de J1, NGJ2 = graines de J2
+% NGJ1 = graines du joueur1, NGJ2 = graines du joueur2.
 afficherNbGraines(NGJ1,NGJ2) :- afficherNbGrainesJ(joueur1,NGJ1), afficherNbGrainesJ(joueur2,NGJ2).
 afficherNbGrainesJ(J,NGJ) :- write(J), write(' possede '), write(NGJ), write(' graines.'), nl.
 
 % Predicat afficherIndiceCases(LCases) : affiche un message d'indice des mouvements possibles
-% LCases = les mouvements possibles
+% LCases = les mouvements possibles.
 afficherIndiceCases(LCases) :- write('Indice : vous pouvez jouer les cases : '), afficherListe(LCases).
 afficherListe([T]) :- write(T), nl.
 afficherListe([T|Q]) :- write(T), write(','), afficherListe(Q).
 
 % Predicat gagne(NGJ1,NGJ1) : affiche le gagnant du jeu.
-% NGJ1 = graines de J1, NGJ2 = graines de J2
+% NGJ1 = graines du joueur1, NGJ2 = graines du joueur2.
 gagne(NGJ1,NGJ1) :- write('Egalité des joueurs').
 gagne(NGJ1,NGJ2) :- NGJ1 > NGJ2, !, write('Le joueur 1 gagne').
 gagne(NGJ1,NGJ2) :- write('Le joueur 2 gagne').
@@ -116,49 +119,46 @@ diviser([T|Q],L1,[T|L2],C) :- C2 is C+1 ,diviser(Q,L1,L2,C2).
 
 
 /** Prédicats de manipulation **/
-% Prédicat nb_graines(C,L,G) : donne le nombre G de graines de la case C de l'état L.
-nb_graines(1,[T|_],T) :- !.
-nb_graines(C,[_|Q],G) :- C1 is C-1, nb_graines(C1,Q,G).
+% Prédicat nbGraines(C,L,G) : donne le nombre G de graines de la case C de l'état L.
+nbGraines(1,[T|_],T) :- !.
+nbGraines(C,[_|Q],G) :- C1 is C-1, nbGraines(C1,Q,G).
 
-% Prédicat set_nb_graines(C,L,G,LA) : affecte un nombre de graine et retourne le nouvel état.
-set_nb_graines(1,[_|Q],G,[G|Q]) :- !.
-set_nb_graines(C,[T|Q],G,[T|R]) :- C1 is C-1, set_nb_graines(C1,Q,G,R).
+% Prédicat setNbGraines(C,L,G,LA) : affecte un nombre de graines et retourne le nouvel état de jeu LA.
+setNbGraines(1,[_|Q],G,[G|Q]) :- !.
+setNbGraines(C,[T|Q],G,[T|R]) :- C1 is C-1, setNbGraines(C1,Q,G,R).
 
-%Prédicat case_du_camp(J,C) : teste si le joueur peut jouer la case C.
-case_du_camp(joueur1,C) :- C<7, C>0.
-case_du_camp(joueur2,C) :- C>6, C<13.
+%Prédicat caseDuCamp(J,C) : teste si le joueur peut jouer la case C.
+caseDuCamp(joueur1,C) :- C<7, C>0.
+caseDuCamp(joueur2,C) :- C>6, C<13.
 
 %Prédicat famine(J,L) : teste si le joueur J est en famine, c-à-d. s'il n'a plus de graines dans son camp.
 famine(J,L) :- famine(J,1,L).
 famine(_,_,[]) :- !.
-famine(J,C,[T|Q]) :- case_du_camp(J,C), !, T =:= 0, C1 is C+1, famine(J,C1,Q).
+famine(J,C,[T|Q]) :- caseDuCamp(J,C), !, T =:= 0, C1 is C+1, famine(J,C1,Q).
 famine(J,C,[_|Q]) :- C1 is C+1, famine(J,C1,Q).
 
-%Prédicat coups_possibles(J,L,LCases) : renvoie la liste des cases possibles pour le joueur, c-à-d. celles qui appartiennent au joueur, non vides, et n'entrainant pas de famine chez l'autre joueur
-coups_possibles(J,L,LCases) :- length(L,C), coups_possibles(J,C,L,LCases).
-coups_possibles(_,0,_,[]) :- !.
-coups_possibles(J,C,L,LCases) :- case_du_camp(J,C), nb_graines(C,L,G), G > 0, joueur_adverse(J,JA), C1 is C+1, distribuer(G,C1,L,LA,_), \+famine(JA,LA), !, C2 is C-1, coups_possibles(J,C2,L,LCases1), LCases = [C|LCases1]. 
-coups_possibles(J,C,L,LCases) :- C1 is C-1, coups_possibles(J,C1,L,LCases).
+%Prédicat mouvementsPossibles(J,L,LCases) : renvoie la liste des cases possibles pour le joueur, c-à-d. celles qui appartiennent au joueur, non vides, et n'entrainant pas de famine chez l'autre joueur
+mouvementsPossibles(J,L,LCases) :- length(L,C), mouvementsPossibles(J,C,L,LCases).
+mouvementsPossibles(_,0,_,[]) :- !.
+mouvementsPossibles(J,C,L,LCases) :- caseDuCamp(J,C), nbGraines(C,L,G), G > 0, joueur_adverse(J,JA), C1 is C+1, distribuer(G,C1,L,LA,_), \+famine(JA,LA), !, C2 is C-1, mouvementsPossibles(J,C2,L,LCases1), LCases = [C|LCases1]. 
+mouvementsPossibles(J,C,L,LCases) :- C1 is C-1, mouvementsPossibles(J,C1,L,LCases).
 
-%Prédicat distribuer(GD,C,L,LA,CA) : distribue le nombre G de graines de la case C à la case d'arrivée CA.
+%Prédicat distribuer(GD,C,L,LA,CA) : distribue le nombre GD de graines de la case C à la case d'arrivée CA.
 distribuer(0,C,L,L,CA) :- CA is C-1, !.
 distribuer(GD,13,L,LA,CA) :- distribuer(GD,1,L,LA,CA).
-distribuer(GD,C,L,LA,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L1,CA), nb_graines(C,L1,G), G1 is G+1, set_nb_graines(C,L1,G1,LA).
+distribuer(GD,C,L,LA,CA) :- C1 is C+1, GD1 is GD-1, distribuer(GD1,C1,L,L1,CA), nbGraines(C,L1,G), G1 is G+1, setNbGraines(C,L1,G1,LA).
 
 % Predicat ramasser(J,C,L,LA,G): ramasse les graines. 
 % L = liste de graines, C = case où l'on arrive, LA, liste retournée une fois ramassée, NG nb de graines ramassée en s'assurant qu'il n'y a pas famine.
 ramasser(J,C,L,LA,G):-ramasser_internal(J,C,L,LA,G), joueur_adverse(J,JA),\+famine(JA,LA),!.
 ramasser(J,C,L,L,0):-ramasser_internal(J,C,L,_,_).
 
-%Predicat ramasser_internal(L,C,J,LA,G) : ramasse les graines L liste de graines, C case où l'on arrive, LA, liste retournée une fois ramassée, NG nb de graines ramassée
-ramasser_internal(J,C,L,L,0) :- case_du_camp(J,C), !. 
-ramasser_internal(_,C,L,L,0) :- nb_graines(C,L,G1), G1>3, !.
-ramasser_internal(_,C,L,L,0) :- nb_graines(C,L,G1), G1<2, !.
+% Predicat ramasser_internal(L,C,J,LA,G) : ramasse les graines.
+% L = état de départ, C = case actuelle de distribution, LA = nouvel état du jeu après ramasser, NG = nb de graines ramassée.
+ramasser_internal(J,C,L,L,0) :- caseDuCamp(J,C), !. 
+ramasser_internal(_,C,L,L,0) :- nbGraines(C,L,G1), G1>3, !.
+ramasser_internal(_,C,L,L,0) :- nbGraines(C,L,G1), G1<2, !.
 ramasser_internal(J,0,L,LA,G) :- ramasser_internal(J,12,L,LA,G).
-ramasser_internal(J,C,L,LA,G) :- nb_graines(C,L,G1), set_nb_graines(C,L,0,L1), C1 is C-1, ramasser_internal(J,C1,L1,LA,G2), G is G1+G2.
-
-%Predicat contains(L,C) : Liste L contient-elle la case C
-contains([T|_],T) :- !.
-contains([_|Q],C) :- contains(Q,C).
+ramasser_internal(J,C,L,LA,G) :- nbGraines(C,L,G1), setNbGraines(C,L,0,L1), C1 is C-1, ramasser_internal(J,C1,L1,LA,G2), G is G1+G2.
 
 /** Fin prédicats de manipulation **/
