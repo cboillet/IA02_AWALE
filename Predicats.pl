@@ -21,7 +21,7 @@ lancerJeu(IA1,IA2) :- tour(J), etat_initial(L), jeu(J,L,0,0,IA1,IA2).
 % J = joueur en cours, L = état du jeu, NGJ1 = graines de J1, NGJ2 = graines de J2, IA1 = le type du joueur1, IA2 = le type du joueur2.
 jeu(joueur1,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur1), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur1,L,LA,NGJ1,NGJ1A,CJ,IA1), CJ = 1, jeu(joueur2,LA,NGJ1A,NGJ2,IA1,IA2), !.
 jeu(joueur2,L,NGJ1,NGJ2,IA1,IA2) :- afficherTour(joueur2), afficherNbGraines(NGJ1,NGJ2), afficher(L), tourDeJeu(joueur2,L,LA,NGJ2,NGJ2A,CJ,IA2), CJ = 1, jeu(joueur1,LA,NGJ1,NGJ2A,IA1,IA2), !.
-jeu(_,L,NGJ1,NGJ2,IA1,IA2) :- finPartie(L,NGJ1,NGJ2).
+jeu(_,L,NGJ1,NGJ2,_,_) :- finPartie(L,NGJ1,NGJ2).
 
 % Predicat tourDeJeu(J,L,LA,NGJ,NGJA,CJ,IA) : un tour de jeu du joueur J.
 % L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer, IA = le type du joueur.
@@ -30,7 +30,7 @@ tourDeJeu(J,L,LA,NGJ,NGJA,CJ,1) :- write('L''IA joue \n'), tourDeJeuIA1(J,L,LA,N
 
 % Predicat tourDeJeuHumain(J,L,LA,NGJ,NGJA,CJ) : un tour de Jeu du joueur J;=, humain.
 % L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer.
-tourDeJeuHumain(J,L,LA,NGJ,NGJA,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
+tourDeJeuHumain(J,L,_,_,_,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
 tourDeJeuHumain(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,LCases), afficherIndiceCases(LCases), askValidCase(J,C,L), member(C,LCases), jouer(J,C,L,LA,NGJ,NGJA), !.
 tourDeJeuHumain(J,L,LA,NGJ,NGJA,1) :- write("Ce coup est impossible, il affame l'adversaire.\n"), tourDeJeuHumain(J,L,LA,NGJ,NGJA,1).
 
@@ -46,8 +46,8 @@ finPartie(L,NGJ1,NGJ2) :- diviser(L,L1,L2,12), sum_list(L2,NG1), sum_list(L1,NG2
 /** Les IA **/
 % Predicat tourDeJeuIA1(J,L,LA,NGJ,NGJA,CJ) : un tour de jeu du joueur J, IA.
 % L = état de départ, LA = état d'arrivée, NGJ = graines du joueur pour L, NGJA = graines du joueur pour LA, CJ = bool continuer de jouer.
-tourDeJeuIA1(J,L,LA,NGJ,NGJA,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
-tourDeJeuIA1(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,[T|Q]), jouer(J,T,L,LA,NGJ,NGJA). %, sleep(0.25), write('Case distribuee : '), write(T), nl, sleep(1).
+tourDeJeuIA1(J,L,_,_,_,0) :- mouvementsPossibles(J,L,LCases), LCases == [], !.
+tourDeJeuIA1(J,L,LA,NGJ,NGJA,1) :- mouvementsPossibles(J,L,[T|_]), jouer(J,T,L,LA,NGJ,NGJA). %, sleep(0.25), write('Case distribuee : '), write(T), nl, sleep(1).
 
 /** Fin IA **/
 
@@ -93,7 +93,7 @@ afficherListe([T|Q]) :- write(T), write(','), afficherListe(Q).
 % Predicat gagne(NGJ1,NGJ1) : affiche le gagnant du jeu.
 % NGJ1 = graines du joueur1, NGJ2 = graines du joueur2.
 gagne(NGJ1,NGJ2) :- NGJ1 > NGJ2, grainesMinVictoire(GM), NGJ1 >= GM, !, write('Le joueur 1 gagne').
-gagne(NGJ1,NGJ2) :- grainesMinVictoire(GM), NGJ2 >= GM, !, write('Le joueur 2 gagne').
+gagne(_,NGJ2) :- grainesMinVictoire(GM), NGJ2 >= GM, !, write('Le joueur 2 gagne').
 gagne(_,_) :- write('Aucun gagnant, egalite des joueurs').
 
 
